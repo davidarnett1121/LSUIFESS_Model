@@ -17,14 +17,18 @@ classdef gapClass
                 r_mid = d_mid/2; %milimeters
                 r_inner = b/2; %milimeters
                 
-                p1_s = deg2rad(30); %Starting angle of pole 1
-                p1_e = deg2rad(60); %Ending angle of pole 1
-                p2_s = deg2rad(120); %Starting angle of pole 2
-                p2_e = deg2rad(150); %Ending angle of pole 2
-                p3_s = deg2rad(210); %Starting angle of pole 3
-                p3_e = deg2rad(240); %Ending angle of pole 3
-                p4_s = deg2rad(330); %Starting angle of pole 4
-                p4_e = deg2rad(360); %Ending angle of pole 4
+                pole_angle = deg2rad(30);
+                pole_offset = deg2rad(0);
+                interpole_angle = deg2rad(60);
+                
+                p1_s = pole_offset; %Starting angle of pole 1
+                p1_e = p1_s + pole_angle; %Ending angle of pole 1
+                p2_s = p1_e + interpole_angle; %Starting angle of pole 2
+                p2_e = p2_s + pole_angle; %Ending angle of pole 2
+                p3_s = p2_e + interpole_angle; %Starting angle of pole 3
+                p3_e = p3_s + pole_angle; %Ending angle of pole 3
+                p4_s = p3_e + interpole_angle; %Starting angle of pole 4
+                p4_e = p4_s + pole_angle; %Ending angle of pole 4
                 
                 theta = 0:res:2*pi; %radians
 

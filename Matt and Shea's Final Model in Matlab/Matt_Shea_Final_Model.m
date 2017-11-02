@@ -109,15 +109,6 @@ gap_inv = gap.^-1;
 gap_inv_avg = (1/(2*pi))*trapz(gap_inv,2); 
 
 
-%% Define the modified winding fuction as a matrix.
-
-% M_Winding = zeros(Coils,length(theta));
-% 
-% for x = 1:Coils
-%     M_Winding(x,:) = turns(x,:)-(1/(2*pi*gap_inv_avg))*(trapz(gap_inv.*turns(x,:),2));
-% end
-
-
 %% Coil Order
 % 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 
 % Q Q D D D D Q Q D D  D  D  Q  Q  D  D  D  D  Q  Q  D  D  D  D
@@ -153,32 +144,7 @@ figure('Name','Magneto-Motive Force')
     xlim([0 6.2832]);
     ylim([-1000 1000]);
 
-  
-%% Calculate MMF from each coil.
 
-% M_MMF = zeros(Coils,length(theta));
-% 
-% M_MMF = I.'.*M_Winding;
-% 
-% M_MMF_total = sum(M_MMF);
-% 
-% % Create figure
-% figure('Name','Magneto-Motive Force')
-% 
-%     % Create plot
-%     plot(theta,M_MMF_total);
-% 
-%     % Create xlabel
-%     xlabel('Electrical Angle (theta)');
-% 
-%     % Create ylabel
-%     ylabel('Modified MMF (A)');
-% 
-%     % Create limits of the axes
-%     xlim([0 6.2832]);
-%     ylim([-1000 1000]);
-
-  
 %% Solve for energy in the airgap
 
 for alpha = 0:360
@@ -222,16 +188,6 @@ figure('Name','Torque')
     % Create x-limits of the axes
     xlim([0 360]);
     
-    
- %% Solve for airgap translation
- 
- x = 0.5;
- y = 0.5;
- 
-radial_shift = sqrt(x^2 + y^2);
-shift_angle = atan(y/x);
-            
-gap = gap + radial_shift*sin(theta+shift_angle);
     
     
     

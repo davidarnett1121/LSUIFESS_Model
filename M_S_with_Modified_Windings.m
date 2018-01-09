@@ -125,7 +125,7 @@ gap_inv_avg = (1/(2*pi))*trapz(gap_inv,2);
 % 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 
 % Q Q D D D D Q Q D D  D  D  Q  Q  D  D  D  D  Q  Q  D  D  D  D
 
-I_d = 0.42; %Amps
+I_d = 2.7; %Amps
 I_q = 0.952*I_d; %Amps
 
 I = [I_q I_q I_d I_d I_d I_d I_q I_q I_d I_d I_d I_d I_q I_q I_d I_d...
@@ -133,35 +133,62 @@ I = [I_q I_q I_d I_d I_d I_d I_q I_q I_d I_d I_d I_d I_q I_q I_d I_d...
 
 %% Calculate MMF from each coil.
 
-MMF = zeros(Coils,length(theta));
+MMF_total = MMF(theta, Coils, M_Winding, I);
 
-MMF = I.'.*M_Winding;
-
-MMF_total = sum(MMF);
-
-% Create figure
-figure('Name','Magneto-Motive Force')
+figure('Name',['Magneto-Motive Force with Electrical Angle of ' 0 ' Degrees'])
 
     % Create plot
+    yyaxis left
     plot(theta,MMF_total);
-
-    % Create xlabel
-    xlabel('Electrical Angle (theta)');
-
     % Create ylabel
     ylabel('Modified MMF (A)');
 
+    yyaxis right      
+    plot(theta, gap);
+    % Create ylabel
+    ylabel('Gap (mm)');
+    ylim([0 12]);
+    % Create xlabel
+    xlabel('Electrical Angle (theta)');            
+
     % Create limits of the axes
     xlim([0 6.2832]);
-    ylim([-1000 1000]);
 
-  
+ 
 %% Solve for energy in the airgap
 
 energy = zeros(1,361);
-
+x = 15+1;
 for alpha = 0:360
-    energy(alpha+1) = energy_function( alpha, 0, theta, gap, MMF_total, res );
+    [energy(alpha+1), MMF_total_plot, gap_plot] = energy_function( alpha, 0, theta, gap, Coils, M_Winding, I, res );
+    
+    
+    % Plot MMF     
+    if( alpha == x )
+        % Create figure
+        figure('Name',['Magneto-Motive Force with Electrical Angle of ' num2str(alpha) ' Degrees'])
+
+            % Create plot
+            yyaxis left
+            plot(theta,MMF_total_plot);
+            % Create ylabel
+            ylabel('Modified MMF (A)');
+            
+            yyaxis right      
+            plot(theta, gap_plot);
+            % Create ylabel
+            ylabel('Gap (m)');
+            ylim([0 0.012]);
+            % Create xlabel
+            xlabel('Electrical Angle (theta)');            
+
+            % Create limits of the axes
+            xlim([0 6.2832]);
+         
+        x = x+15;
+    end    
+    
+    
 end
 
 alpha = 0:360;
@@ -181,7 +208,7 @@ figure('Name','Air Gap Energy')
     xlim([0 360]);
     
     
-%%Solve for torque
+%% Solve for torque
 
 torque = diff(energy)/deg2rad(1);
 
@@ -201,6 +228,25 @@ figure('Name','Torque')
     % Create x-limits of the axes
     xlim([0 360]);
     
+%% Solve for acceleration
+
+I_ozG = 0.119014; %kg*m^2
+
+omega = torque/I_ozG; %rad/s^2
+
+figure('Name','Omega')
+
+    % Create plot
+    plot(alpha,omega);
+
+    % Create xlabel
+    xlabel('Mechanical Rotor Angle (deg)');
+
+    % Create ylabel
+    ylabel('Mechanical Angular Acceleration (rad/sec^2)');
+
+    % Create x-limits of the axes
+    xlim([0 360]);
 
 %% Solve for translational force
 
@@ -221,15 +267,15 @@ figure('Name','Torque')
     end
     
     [dif,shift] = min(abs(theta-alpha));
-    gap = circshift(gap_1, shift);
+    gap2 = circshift(gap_1, shift);
 
-    gap = gap.*1E-3 + radial_shift*sin(theta+shift_angle).*1E-3;
+    gap2 = gap2.*1E-3 + radial_shift*sin(theta+shift_angle).*1E-3;
 
     % Create figure
     figure('Name','Graphical Representation of the Air Gap')
 
         % Create plot
-        plot(theta,gap);
+        plot(theta,gap2);
 
         % Create xlabel
         xlabel('Electrical Angle (rad)');
@@ -242,17 +288,17 @@ figure('Name','Torque')
 
 %%
     
-    gap_avg = trapz(gap,2).*res; %meter
+    gap_avg2 = trapz(gap2,2).*res; %meter
 
-    gap_inv = gap.^-1;
+    gap_inv2 = gap2.^-1;
 
-    gap_inv_avg = (1/(2*pi))*trapz(gap_inv,2); 
+    gap_inv_avg2 = (1/(2*pi))*trapz(gap_inv2,2); 
     
-     M_Winding = zeros(Coils,length(theta));
+    M_Winding = zeros(Coils,length(theta));
  
-     for x = 1:Coils
-         M_Winding(x,:) = turns(x,:)-(1/(2*pi*gap_inv_avg))*(trapz(gap_inv.*turns(x,:),2));
-     end
+    for x = 1:Coils
+        M_Winding(x,:) = turns(x,:)-(1/(2*pi*gap_inv_avg2))*(trapz(gap_inv2.*turns(x,:),2));
+    end
  
     MMF = I.'.*M_Winding;
 
@@ -260,7 +306,7 @@ figure('Name','Torque')
     
     % Solve for energy in the airgap
     
-    H = MMF_total.*gap_inv;
+    H = MMF_total.*gap_inv2;
     
     B = mu_0.*H;
     
@@ -279,17 +325,17 @@ figure('Name','Torque')
 %     
      F_x = (((B.^2).*0.034804553091815.*0.0635)./(2*mu_0)).*cos(theta + deg2rad(45));
 
-     Fx_total = trapz(gap,F_x,2);
+     Fx_total = trapz(gap2,F_x,2);
 
      F_y = (((B.^2).*0.034804553091815.*0.0635)./(2*mu_0)).*sin(theta + deg2rad(45));
 
-     Fy_total = trapz(gap,F_y,2);
+     Fy_total = trapz(gap2,F_y,2);
     
  figure('Name','Force')
  
      % Create plot
      plot(theta, F_x, theta, F_y,...
-          theta, gap.*10^4.26,...
+          theta, gap2.*10^4.26,...
           theta, MMF_total.*10^-0.28,...
           theta, B.*10^2.62);
       
@@ -304,4 +350,4 @@ figure('Name','Torque')
      % Create x-limits of the axes
      xlim([0 2*pi]);
      
-    
+%%    

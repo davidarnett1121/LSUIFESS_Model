@@ -1,7 +1,12 @@
-function [outputArg1,outputArg2] = MMF(inputArg1,inputArg2)
-%UNTITLED Summary of this function goes here
+function [MMF_total] = MMF(theta, Coils, Winding, I)
+%MMF Calculate MMF from each coil
 %   Detailed explanation goes here
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+
+MMF = zeros(Coils,length(theta));
+
+MMF = I.'.*Winding;
+
+MMF_total = sum(MMF);
+  
 end
 
